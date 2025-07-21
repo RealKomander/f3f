@@ -1,0 +1,6 @@
+{
+  "f3f.render_distance.increased": "Render Distance increased to %d",
+  "f3f.render_distance.decreased": "Render Distance decreased to %d",
+  "f3f.render_distance.max": "Render Distance is already at maximum (%d)",
+  "f3f.render_distance.min": "Render Distance is already at minimum (%d)"
+}

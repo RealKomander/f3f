@@ -4,8 +4,8 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
-import net.minecraft.util.math.MathHelper;
+import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
+import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -15,49 +15,41 @@ public class F3f implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Initializing F3F mod - render distance packet handler");
+        LOGGER.info("Initializing F3F mod");
 
-        // Register the client-to-server payload
-        PayloadTypeRegistry.playC2S().register(RenderDistanceChangePayload.ID, RenderDistanceChangePayload.CODEC);
+        // Register packet types
+        PayloadTypeRegistry.playC2S().register(RenderDistanceChangeC2SPacket.ID, RenderDistanceChangeC2SPacket.CODEC);
+        PayloadTypeRegistry.playS2C().register(RenderDistanceUpdateS2CPacket.ID, RenderDistanceUpdateS2CPacket.CODEC);
 
-        // Register packet receiver on server side
-        ServerPlayNetworking.registerGlobalReceiver(RenderDistanceChangePayload.ID, (payload, context) -> {
+        // Register packet handler on server side
+        ServerPlayNetworking.registerGlobalReceiver(RenderDistanceChangeC2SPacket.ID, (payload, context) -> {
             ServerPlayerEntity player = context.player();
 
-            // Get current server render distance
-            int currentRenderDistance = player.getServer().getPlayerManager().getViewDistance();
-            int maxRenderDistance = player.getServer().getPlayerManager().getViewDistance(); // Server's max view distance
-            int newRenderDistance;
+            context.server().execute(() -> {
+                // Get current server view distance
+                int serverViewDistance = player.getServer().getPlayerManager().getViewDistance();
 
-            if (payload.increase()) {
-                // Increase render distance (max is server's view distance, usually 10-32)
-                newRenderDistance = Math.min(currentRenderDistance + 1, Math.min(32, maxRenderDistance));
-            } else {
-                // Decrease render distance (min 2 chunks)
-                newRenderDistance = Math.max(currentRenderDistance - 1, 2);
-            }
+                // Calculate new render distance based on current server setting
+                int currentRenderDistance = Math.min(serverViewDistance, 32); // Cap at 32 for safety
+                int newRenderDistance;
 
-            // Apply the new render distance if it changed
-            if (newRenderDistance != currentRenderDistance) {
-                // Set the view distance for the server
-                player.getServer().getPlayerManager().setViewDistance(newRenderDistance);
-
-                LOGGER.info("Player {} changed server render distance from {} to {} chunks",
-                        player.getName().getString(), currentRenderDistance, newRenderDistance);
-
-                // You might want to send a confirmation message to the player
-                player.sendMessage(Text.of(
-                        String.format("Render distance %s to %d chunks",
-                                payload.increase() ? "increased" : "decreased", newRenderDistance)
-                ));
-            } else {
-                // Notify player if at limits
-                if (payload.increase() && currentRenderDistance >= Math.min(32, maxRenderDistance)) {
-                    player.sendMessage(Text.of("Render distance already at maximum (" + currentRenderDistance + " chunks)"));
-                } else if (!payload.increase() && currentRenderDistance <= 2) {
-                    player.sendMessage(Text.of("Render distance already at minimum (2 chunks)"));
+                if (payload.increase()) {
+                    newRenderDistance = Math.min(currentRenderDistance + 1, 32);
+                } else {
+                    newRenderDistance = Math.max(currentRenderDistance - 1, 2);
                 }
-            }
+
+                if (newRenderDistance != currentRenderDistance) {
+                    // Update server view distance
+                    player.getServer().getPlayerManager().setViewDistance(newRenderDistance);
+
+                    // Send update packet to client to change their render distance
+                    ServerPlayNetworking.send(player, new RenderDistanceUpdateS2CPacket(newRenderDistance));
+
+                    LOGGER.info("Player {} changed render distance from {} to {}",
+                            player.getName().getString(), currentRenderDistance, newRenderDistance);
+                }
+            });
         });
     }
 }
