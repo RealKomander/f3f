@@ -4,6 +4,9 @@
   "package": "org.dristmine.f3f.mixin.client",
   "compatibilityLevel": "JAVA_21",
   "client": [
+    "KeyboardHandlerMixin",
+    "KeyBindingMixin",
+    "MinecraftClientMixin"
   ],
   "injectors": {
     "defaultRequire": 1

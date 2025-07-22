@@ -1,0 +1,3 @@
+v1	named	intermediary
+FIELD	org/dristmine/f3f/mixin/client/KeyBindingMixin	Lnet/minecraft/client/util/InputUtil$Key;	boundKey	field_1655
+FIELD	org/dristmine/f3f/mixin/client/KeyboardHandlerMixin	Lnet/minecraft/client/MinecraftClient;	client	field_1678

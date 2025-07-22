@@ -1,0 +1,28 @@
+{
+  "mappings": {
+    "org/dristmine/f3f/mixin/client/KeyBindingMixin": {
+      "isPressed": "Lnet/minecraft/class_304;method_1434()Z",
+      "wasPressed": "Lnet/minecraft/class_304;method_1436()Z"
+    },
+    "org/dristmine/f3f/mixin/client/KeyboardHandlerMixin": {
+      "onKey": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+    },
+    "org/dristmine/f3f/mixin/client/MinecraftClientMixin": {
+      "setScreen": "Lnet/minecraft/class_310;method_1507(Lnet/minecraft/class_437;)V"
+    }
+  },
+  "data": {
+    "named:intermediary": {
+      "org/dristmine/f3f/mixin/client/KeyBindingMixin": {
+        "isPressed": "Lnet/minecraft/class_304;method_1434()Z",
+        "wasPressed": "Lnet/minecraft/class_304;method_1436()Z"
+      },
+      "org/dristmine/f3f/mixin/client/KeyboardHandlerMixin": {
+        "onKey": "Lnet/minecraft/class_309;method_1466(JIIII)V"
+      },
+      "org/dristmine/f3f/mixin/client/MinecraftClientMixin": {
+        "setScreen": "Lnet/minecraft/class_310;method_1507(Lnet/minecraft/class_437;)V"
+      }
+    }
+  }
+}
