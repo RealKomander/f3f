@@ -3,16 +3,13 @@
   "id": "f3f",
   "version": "${version}",
   "name": "F3F",
-  "description": "",
-  "authors": [],
+  "description": "Restore F3+F render distance controls with permission support",
+  "authors": ["YourName"],
   "contact": {},
   "license": "All-Rights-Reserved",
   "icon": "assets/f3f/icon.png",
   "environment": "*",
   "entrypoints": {
-    "fabric-datagen": [
-      "org.dristmine.f3f.client.F3fDataGenerator"
-    ],
     "client": [
       "org.dristmine.f3f.client.F3fClient"
     ],
@@ -31,5 +28,8 @@
     "fabricloader": ">=${loader_version}",
     "fabric": "*",
     "minecraft": "${minecraft_version}"
+  },
+  "suggests": {
+    "luckperms": "*"
   }
 }

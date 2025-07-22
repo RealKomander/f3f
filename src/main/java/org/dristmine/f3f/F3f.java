@@ -4,9 +4,10 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
-import net.minecraft.text.Text;
 import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
+import org.dristmine.f3f.util.PermissionUtils;
+import org.dristmine.f3f.util.TextUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,7 +17,10 @@ public class F3f implements ModInitializer {
 
     @Override
     public void onInitialize() {
-        LOGGER.info("Initializing F3F mod");
+        LOGGER.info("[F3F] Initializing F3F mod");
+
+        // Initialize LuckPerms integration
+        PermissionUtils.initialize();
 
         // Register packet types
         PayloadTypeRegistry.playC2S().register(RenderDistanceChangeC2SPacket.ID, RenderDistanceChangeC2SPacket.CODEC);
@@ -27,6 +31,14 @@ public class F3f implements ModInitializer {
             ServerPlayerEntity player = context.player();
 
             context.server().execute(() -> {
+                // Check permissions first
+                if (!PermissionUtils.canChange(player)) {
+                    player.sendMessage(TextUtils.createPermissionDeniedMessage(), true);
+                    LOGGER.info("[F3F] Player {} attempted change – denied (no permission)",
+                            player.getGameProfile().getName());
+                    return;
+                }
+
                 // Get current server view distance
                 int serverViewDistance = player.getServer().getPlayerManager().getViewDistance();
 
@@ -47,28 +59,28 @@ public class F3f implements ModInitializer {
                     // Send update packet to client to change their render distance
                     ServerPlayNetworking.send(player, new RenderDistanceUpdateS2CPacket(newRenderDistance));
 
-                    // Send feedback message to player
-                    Text message;
-                    if (payload.increase()) {
-                        message = Text.translatable("f3f.render_distance.increased", newRenderDistance);
-                    } else {
-                        message = Text.translatable("f3f.render_distance.decreased", newRenderDistance);
-                    }
-                    player.sendMessage(message, true); // true = overlay (like subtitle)
+                    // Send styled feedback message to player
+                    player.sendMessage(TextUtils.createRenderDistanceMessage(newRenderDistance), true);
 
-                    LOGGER.info("Player {} changed render distance from {} to {}",
+                    // Log to server console
+                    LOGGER.info("[F3F] Player {} changed render distance from {} to {}",
                             player.getName().getString(), currentRenderDistance, newRenderDistance);
                 } else {
-                    // Send message when already at limit
-                    Text message;
+                    // Send message when already at limit (but still with styled format)
+                    player.sendMessage(TextUtils.createRenderDistanceMessage(newRenderDistance), true);
+
+                    // Log attempt to server console
                     if (payload.increase()) {
-                        message = Text.translatable("f3f.render_distance.max", newRenderDistance);
+                        LOGGER.info("[F3F] Player {} attempted to increase render distance but already at maximum ({})",
+                                player.getName().getString(), newRenderDistance);
                     } else {
-                        message = Text.translatable("f3f.render_distance.min", newRenderDistance);
+                        LOGGER.info("[F3F] Player {} attempted to decrease render distance but already at minimum ({})",
+                                player.getName().getString(), newRenderDistance);
                     }
-                    player.sendMessage(message, true); // true = overlay
                 }
             });
         });
+
+        LOGGER.info("[F3F] F3F mod initialization complete");
     }
 }

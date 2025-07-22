@@ -1,7 +1,0 @@
-{
-  "f3f.render_distance.increased": "Render Distance increased to %d chunks",
-  "f3f.render_distance.decreased": "Render Distance decreased to %d chunks",
-  "f3f.render_distance.max": "Render Distance is already at maximum (%d chunks)",
-  "f3f.render_distance.min": "Render Distance is already at minimum (%d chunks)",
-  "f3f.render_distance.changed": "Render Distance changed from %d to %d chunks"
-}

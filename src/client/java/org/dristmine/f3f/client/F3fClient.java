@@ -6,6 +6,7 @@ import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
+import org.dristmine.f3f.util.TextUtils;
 import org.lwjgl.glfw.GLFW;
 import net.minecraft.text.Text;
 
@@ -36,9 +37,8 @@ public class F3fClient implements ClientModInitializer {
 
                     // Optional: Additional client-side feedback
                     if (client.player != null && oldDistance != payload.renderDistance()) {
-                        Text message = Text.translatable("f3f.render_distance.changed",
-                                oldDistance, payload.renderDistance());
-                        client.player.sendMessage(message, false); // false = chat message
+                        Text message = TextUtils.createRenderDistanceMessage(payload.renderDistance());
+                        client.player.sendMessage(message, false);
                     }
                 }
             });
