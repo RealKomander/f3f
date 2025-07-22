@@ -7,9 +7,9 @@ import net.luckperms.api.LuckPermsProvider;
 import net.luckperms.api.model.user.User;
 import net.minecraft.server.network.ServerPlayerEntity;
 import org.dristmine.f3f.F3f;
+import org.dristmine.f3f.config.F3fConfig;
 
 public final class PermissionUtils {
-    private static final String CHANGE_NODE = "f3f.change";
     private static LuckPerms luckPerms;
     private static boolean luckPermsAvailable = false;
     private static boolean initializeAttempted = false;
@@ -29,20 +29,20 @@ public final class PermissionUtils {
 
         // Check if LuckPerms mod is present
         if (!FabricLoader.getInstance().isModLoaded("luckperms")) {
-            F3f.LOGGER.info("[F3F] LuckPerms not detected - permission checks disabled");
+            F3f.LOGGER.info(TextUtils.getLogMessage("f3f.log.luckperms_not_detected"));
             return;
         }
 
         try {
             luckPerms = LuckPermsProvider.get();
             luckPermsAvailable = true;
-            F3f.LOGGER.info("[F3F] LuckPerms integration enabled");
+            F3f.LOGGER.info(TextUtils.getLogMessage("f3f.log.luckperms_enabled"));
         } catch (IllegalStateException ex) {
-            F3f.LOGGER.warn("[F3F] LuckPerms present but API not initialized - permission checks disabled");
+            F3f.LOGGER.warn(TextUtils.getLogMessage("f3f.log.luckperms_not_initialized"));
             luckPerms = null;
             luckPermsAvailable = false;
         } catch (Exception ex) {
-            F3f.LOGGER.error("[F3F] Error initializing LuckPerms: {}", ex.getMessage());
+            F3f.LOGGER.error(TextUtils.getLogMessage("f3f.log.luckperms_error", ex.getMessage()));
             luckPerms = null;
             luckPermsAvailable = false;
         }
@@ -60,12 +60,14 @@ public final class PermissionUtils {
                 return false;
             }
 
+            // Use configurable permission node
+            String permissionNode = F3fConfig.getInstance().getPermissionNode();
             return user.getCachedData().getPermissionData()
-                    .checkPermission(CHANGE_NODE).asBoolean();
+                    .checkPermission(permissionNode).asBoolean();
 
         } catch (Exception ex) {
-            F3f.LOGGER.error("[F3F] Error checking permissions for player {}: {}",
-                    player.getName().getString(), ex.getMessage());
+            F3f.LOGGER.error(TextUtils.getLogMessage("f3f.log.permission_error",
+                    player.getName().getString(), ex.getMessage()));
             return false;
         }
     }

@@ -4,7 +4,7 @@
   "version": "${version}",
   "name": "F3F",
   "description": "Restore F3+F render distance controls with permission support",
-  "authors": ["YourName"],
+  "authors": ["ClaudeAI", "PerplexityAI", "RealKomander"],
   "contact": {},
   "license": "All-Rights-Reserved",
   "icon": "assets/f3f/icon.png",

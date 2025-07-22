@@ -65,20 +65,27 @@ public class TextUtils {
         return result;
     }
 
-    public static Text createDebugMessage(String message) {
-        return parseColorCodes("&l&e[Debug]: &r" + message);
+    /**
+     * Get translatable text with color code support
+     */
+    public static Text getTranslatableText(String key, Object... args) {
+        String translatedText = Text.translatable(key, args).getString();
+        return parseColorCodes(translatedText);
     }
 
-    public static Text createDebugMessage(String messageKey, Object... args) {
-        String rawMessage = Text.translatable(messageKey, args).getString();
-        return parseColorCodes("&l&e[Debug]: &r" + rawMessage);
+    /**
+     * Get log message (server-side, no color codes)
+     */
+    public static String getLogMessage(String key, Object... args) {
+        return Text.translatable(key, args).getString();
     }
 
+    // Player message methods
     public static Text createPermissionDeniedMessage() {
-        return parseColorCodes("&l&e[Debug]: &rUnable to change render distance; no permission");
+        return getTranslatableText("f3f.message.permission_denied");
     }
 
     public static Text createRenderDistanceMessage(int renderDistance) {
-        return parseColorCodes("&l&e[Debug]: &rRender Distance: " + renderDistance);
+        return getTranslatableText("f3f.message.render_distance", renderDistance);
     }
 }

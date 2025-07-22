@@ -5,6 +5,7 @@ import net.fabricmc.fabric.api.client.event.lifecycle.v1.ClientTickEvents;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayNetworking;
 import net.minecraft.client.MinecraftClient;
 import net.minecraft.text.Text;
+import org.dristmine.f3f.config.F3fConfig;
 import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceSyncC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
@@ -17,16 +18,17 @@ public class F3fClient implements ClientModInitializer {
     private static boolean lastFState = false;
     private static boolean f3fCombinationUsed = false;
     private static long lastF3FUsage = 0;
-    private static final long F3F_COOLDOWN = 1000;
 
     // Auto-sync tracking
     private static int lastClientRenderDistance = -1;
     private static boolean serverUpdateReceived = false;
     private static long lastServerUpdate = 0;
-    private static final long SERVER_UPDATE_COOLDOWN = 1000; // 1 second cooldown after server update
 
     @Override
     public void onInitializeClient() {
+        // Load configuration
+        F3fConfig.load();
+
         // Register client packet handler
         ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
@@ -35,8 +37,10 @@ public class F3fClient implements ClientModInitializer {
 
                 if (payload.renderDistance() == -1) {
                     // Server is requesting current render distance (auto-sync on join)
-                    int currentRenderDistance = client.options.getViewDistance().getValue();
-                    ClientPlayNetworking.send(new RenderDistanceSyncC2SPacket(currentRenderDistance));
+                    if (F3fConfig.getInstance().isAutoSyncEnabled()) {
+                        int currentRenderDistance = client.options.getViewDistance().getValue();
+                        ClientPlayNetworking.send(new RenderDistanceSyncC2SPacket(currentRenderDistance));
+                    }
                 } else {
                     // Normal render distance update from server
                     int newRenderDistance = payload.renderDistance();
@@ -73,14 +77,20 @@ public class F3fClient implements ClientModInitializer {
     private void onClientTick(MinecraftClient client) {
         if (client.player == null || client.getWindow() == null) return;
 
-        // Handle F3+F key combinations (existing code)
-        handleF3FKeys(client);
+        // Only handle keys if F3+F functionality is enabled
+        if (F3fConfig.getInstance().areF3FKeysEnabled()) {
+            handleF3FKeys(client);
+        }
 
-        // Handle auto-sync when render distance changes in options (but not immediately after server updates)
-        handleAutoSync(client);
+        // Handle auto-sync if enabled
+        if (F3fConfig.getInstance().isAutoSyncEnabled()) {
+            handleAutoSync(client);
+        }
     }
 
     private void handleF3FKeys(MinecraftClient client) {
+        F3fConfig config = F3fConfig.getInstance();
+
         // Get current key states
         long windowHandle = client.getWindow().getHandle();
         boolean currentF3State = GLFW.glfwGetKey(windowHandle, GLFW.GLFW_KEY_F3) == GLFW.GLFW_PRESS;
@@ -107,7 +117,7 @@ public class F3fClient implements ClientModInitializer {
         }
 
         // Auto-reset the flag after cooldown period
-        if (f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) > F3F_COOLDOWN) {
+        if (f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) > config.getF3FCooldown()) {
             f3fCombinationUsed = false;
         }
 
@@ -119,13 +129,15 @@ public class F3fClient implements ClientModInitializer {
     private void handleAutoSync(MinecraftClient client) {
         if (client.options == null) return;
 
+        F3fConfig config = F3fConfig.getInstance();
+
         // Don't auto-sync immediately after receiving a server update
-        if (serverUpdateReceived && (System.currentTimeMillis() - lastServerUpdate) < SERVER_UPDATE_COOLDOWN) {
+        if (serverUpdateReceived && (System.currentTimeMillis() - lastServerUpdate) < config.getServerUpdateCooldown()) {
             return;
         }
 
         // Reset the server update flag after cooldown
-        if (serverUpdateReceived && (System.currentTimeMillis() - lastServerUpdate) >= SERVER_UPDATE_COOLDOWN) {
+        if (serverUpdateReceived && (System.currentTimeMillis() - lastServerUpdate) >= config.getServerUpdateCooldown()) {
             serverUpdateReceived = false;
         }
 
@@ -151,7 +163,8 @@ public class F3fClient implements ClientModInitializer {
     }
 
     public static boolean wasF3FCombinationUsed() {
-        return f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) < F3F_COOLDOWN;
+        F3fConfig config = F3fConfig.getInstance();
+        return f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) < config.getF3FCooldown();
     }
 
     public static void resetF3FCombinationFlag() {
