@@ -7,6 +7,8 @@ import net.minecraft.client.MinecraftClient;
 import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
 import org.lwjgl.glfw.GLFW;
+import net.minecraft.text.Text;
+
 
 public class F3fClient implements ClientModInitializer {
     private boolean f3Pressed = false;
@@ -24,10 +26,19 @@ public class F3fClient implements ClientModInitializer {
                 // Update client render distance setting
                 MinecraftClient client = context.client();
                 if (client.options != null) {
+                    int oldDistance = client.options.getViewDistance().getValue();
                     client.options.getViewDistance().setValue(payload.renderDistance());
+
                     // Force chunk reload to apply new render distance
                     if (client.worldRenderer != null) {
                         client.worldRenderer.reload();
+                    }
+
+                    // Optional: Additional client-side feedback
+                    if (client.player != null && oldDistance != payload.renderDistance()) {
+                        Text message = Text.translatable("f3f.render_distance.changed",
+                                oldDistance, payload.renderDistance());
+                        client.player.sendMessage(message, false); // false = chat message
                     }
                 }
             });

@@ -4,6 +4,7 @@ import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.networking.v1.PayloadTypeRegistry;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.text.Text;
 import org.dristmine.f3f.packet.RenderDistanceChangeC2SPacket;
 import org.dristmine.f3f.packet.RenderDistanceUpdateS2CPacket;
 import org.slf4j.Logger;
@@ -30,7 +31,7 @@ public class F3f implements ModInitializer {
                 int serverViewDistance = player.getServer().getPlayerManager().getViewDistance();
 
                 // Calculate new render distance based on current server setting
-                int currentRenderDistance = Math.min(serverViewDistance, 32); // Cap at 32 for safety
+                int currentRenderDistance = Math.min(serverViewDistance, 32);
                 int newRenderDistance;
 
                 if (payload.increase()) {
@@ -46,8 +47,26 @@ public class F3f implements ModInitializer {
                     // Send update packet to client to change their render distance
                     ServerPlayNetworking.send(player, new RenderDistanceUpdateS2CPacket(newRenderDistance));
 
+                    // Send feedback message to player
+                    Text message;
+                    if (payload.increase()) {
+                        message = Text.translatable("f3f.render_distance.increased", newRenderDistance);
+                    } else {
+                        message = Text.translatable("f3f.render_distance.decreased", newRenderDistance);
+                    }
+                    player.sendMessage(message, true); // true = overlay (like subtitle)
+
                     LOGGER.info("Player {} changed render distance from {} to {}",
                             player.getName().getString(), currentRenderDistance, newRenderDistance);
+                } else {
+                    // Send message when already at limit
+                    Text message;
+                    if (payload.increase()) {
+                        message = Text.translatable("f3f.render_distance.max", newRenderDistance);
+                    } else {
+                        message = Text.translatable("f3f.render_distance.min", newRenderDistance);
+                    }
+                    player.sendMessage(message, true); // true = overlay
                 }
             });
         });

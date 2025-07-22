@@ -1,0 +1,35 @@
+{
+  "schemaVersion": 1,
+  "id": "f3f",
+  "version": "1.0",
+  "name": "F3F",
+  "description": "",
+  "authors": [],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/f3f/icon.png",
+  "environment": "*",
+  "entrypoints": {
+    "fabric-datagen": [
+      "org.dristmine.f3f.client.F3fDataGenerator"
+    ],
+    "client": [
+      "org.dristmine.f3f.client.F3fClient"
+    ],
+    "main": [
+      "org.dristmine.f3f.F3f"
+    ]
+  },
+  "mixins": [
+    "f3f.mixins.json",
+    {
+      "config": "f3f.client.mixins.json",
+      "environment": "client"
+    }
+  ],
+  "depends": {
+    "fabricloader": ">=0.16.14",
+    "fabric": "*",
+    "minecraft": "1.21.7"
+  }
+}
