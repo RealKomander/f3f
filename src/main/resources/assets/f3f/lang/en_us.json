@@ -1,0 +1,25 @@
+{
+  "f3f.message.permission_denied": "&l&e[Debug]: &rUnable to change render distance; no permission",
+  "f3f.message.render_distance": "&l&e[Debug]: &rRender Distance: %d",
+  "f3f.message.server_render_distance": "&l&e[Debug]: &rServer Render Distance: %d",
+  "f3f.message.client_render_distance": "&l&e[Debug]: &rClient Render Distance: %d",
+
+  "f3f.log.initializing": "Initializing F3F mod",
+  "f3f.log.initialization_complete": "F3F mod initialization complete",
+  "f3f.log.server_started": "Server started, initializing LuckPerms integration...",
+  "f3f.log.luckperms_not_detected": "LuckPerms not detected - permission checks disabled",
+  "f3f.log.luckperms_enabled": "LuckPerms integration enabled",
+  "f3f.log.luckperms_not_initialized": "LuckPerms present but API not initialized - permission checks disabled",
+  "f3f.log.luckperms_error": "Error initializing LuckPerms: %s",
+  "f3f.log.permission_error": "Error checking permissions for player %s: %s",
+  "f3f.log.player_denied": "Player %s attempted change – denied (no permission)",
+  "f3f.log.render_distance_changed": "Player %s changed render distance from %d to %d (F3+F)",
+  "f3f.log.render_distance_max": "Player %s attempted to increase render distance but already at maximum (%d)",
+  "f3f.log.render_distance_min": "Player %s attempted to decrease render distance but already at minimum (%d)",
+  "f3f.log.auto_sync": "Auto-synced render distance for player %s from %d to %d (options change)",
+  "f3f.log.config_loaded": "Configuration loaded from %s",
+  "f3f.log.config_created": "Created default configuration at %s",
+  "f3f.log.config_load_error": "Failed to load configuration, using defaults: %s",
+  "f3f.log.config_save_error": "Failed to save configuration: %s",
+  "f3f.log.render_distance_changed_all": "Player %s changed render distance from %d to %d"
+}

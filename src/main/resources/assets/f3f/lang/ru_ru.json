@@ -1,0 +1,25 @@
+{
+  "f3f.message.permission_denied": "&l&e[Отладка]: &rНевозможно изменить дальность прорисовки; нет разрешения",
+  "f3f.message.render_distance": "&l&e[Отладка]: &rДальность прорисовки: %d",
+  "f3f.message.server_render_distance": "&l&e[Отладка]: &rСерверная дальность прорисовки: %d",
+  "f3f.message.client_render_distance": "&l&e[Отладка]: &rКлиентская дальность прорисовки: %d",
+
+  "f3f.log.initializing": "Инициализация мода F3F",
+  "f3f.log.initialization_complete": "Инициализация мода F3F завершена",
+  "f3f.log.server_started": "Сервер запущен, инициализация интеграции с LuckPerms...",
+  "f3f.log.luckperms_not_detected": "LuckPerms не обнаружен - проверка разрешений отключена",
+  "f3f.log.luckperms_enabled": "Интеграция с LuckPerms включена",
+  "f3f.log.luckperms_not_initialized": "LuckPerms присутствует, но API не инициализирован - проверка разрешений отключена",
+  "f3f.log.luckperms_error": "Ошибка инициализации LuckPerms: %s",
+  "f3f.log.permission_error": "Ошибка проверки разрешений для игрока %s: %s",
+  "f3f.log.player_denied": "Игрок %s попытался изменить настройки - отказано (нет разрешения)",
+  "f3f.log.render_distance_changed": "Игрок %s изменил дальность прорисовки с %d на %d (F3+F)",
+  "f3f.log.render_distance_max": "Игрок %s попытался увеличить дальность прорисовки, но она уже максимальная (%d)",
+  "f3f.log.render_distance_min": "Игрок %s попытался уменьшить дальность прорисовки, но она уже минимальная (%d)",
+  "f3f.log.auto_sync": "Автосинхронизация дальности прорисовки для игрока %s с %d на %d (изменение в настройках)",
+  "f3f.log.config_loaded": "Конфигурация загружена из %s",
+  "f3f.log.config_created": "Создана стандартная конфигурация в %s",
+  "f3f.log.config_load_error": "Не удалось загрузить конфигурацию, используются стандартные настройки: %s",
+  "f3f.log.config_save_error": "Не удалось сохранить конфигурацию: %s",
+  "f3f.log.render_distance_changed_all": "Игрок %s изменил дальность прорисовки с %d на %d"
+}

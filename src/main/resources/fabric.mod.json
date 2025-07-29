@@ -1,29 +1,35 @@
 {
   "schemaVersion": 1,
-  "id": "${id}",
+  "id": "f3f",
   "version": "${version}",
-  "name": "${name}",
-  "description": "This is an example description! Tell everyone what your mod is about!",
-  "authors": [
-    "Me!"
-  ],
-  "contact": {
-    "homepage": "https://fabricmc.net/",
-    "sources": "https://github.com/FabricMC/fabric-example-mod"
-  },
-  "license": "CC0-1.0",
-  "icon": "assets/template/icon.png",
+  "name": "F3F",
+  "description": "Restore F3+F render distance controls with permission support",
+  "authors": ["ClaudeAI", "PerplexityAI", "RealKomander"],
+  "contact": {},
+  "license": "All-Rights-Reserved",
+  "icon": "assets/f3f/icon.png",
   "environment": "*",
   "entrypoints": {
+    "client": [
+      "org.dristmine.f3f.client.F3fClient"
+    ],
     "main": [
-      "com.example.TemplateMod"
+      "org.dristmine.f3f.F3f"
     ]
   },
   "mixins": [
-    "template.mixins.json"
+    "f3f.mixins.json",
+    {
+      "config": "f3f.client.mixins.json",
+      "environment": "client"
+    }
   ],
   "depends": {
-    "fabricloader": ">=0.16",
-    "minecraft": "${minecraft}"
+    "fabricloader": ">=${loader_version}",
+    "fabric": "*",
+    "minecraft": "${minecraft_version}"
+  },
+  "suggests": {
+    "luckperms": "*"
   }
 }
