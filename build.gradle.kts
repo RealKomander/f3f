@@ -19,6 +19,8 @@ repositories {
     }
     strictMaven("https://www.cursemaven.com", "CurseForge", "curse.maven")
     strictMaven("https://api.modrinth.com/maven", "Modrinth", "maven.modrinth")
+
+    mavenCentral()
 }
 
 dependencies {
@@ -35,6 +37,8 @@ dependencies {
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
     fapi("fabric-lifecycle-events-v1",)
+
+    compileOnly("net.luckperms:api:${property("deps.luckperms")}")
 }
 
 loom {
