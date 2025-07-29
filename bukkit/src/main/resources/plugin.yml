@@ -1,0 +1,30 @@
+name: F3F
+version: 1.1.0
+main: org.dristmine.f3f.bukkit.F3fPlugin
+author: RealKomander
+description: F3+F render distance control for speedrunning servers - now with PacketEvents!
+api-version: 1.19
+
+depend: [packetevents]
+softdepend: [LuckPerms]
+
+commands:
+  f3freload:
+    description: Reload F3F configuration
+    permission: f3f.reload
+    usage: /f3freload
+  f3finfo:
+    description: Display F3F plugin information
+    permission: f3f.info
+    usage: /f3finfo
+
+permissions:
+  f3f.change:
+    description: Allows changing render distance with F3+F
+    default: op
+  f3f.reload:
+    description: Allows reloading F3F configuration
+    default: op
+  f3f.info:
+    description: Allows viewing F3F plugin information
+    default: true

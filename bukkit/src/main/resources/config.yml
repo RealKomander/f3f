@@ -1,0 +1,79 @@
+# F3F Bukkit Plugin Configuration
+# This file controls the behavior of the F3F render distance plugin for speedrunning servers
+
+# Permission node required to change render distance
+# Players with this permission can use F3+F to change render distance
+permission-node: "f3f.change"
+
+# Minimum render distance allowed (chunks)
+# Players cannot set render distance below this value
+min-render-distance: 2
+
+# Maximum render distance allowed (chunks)
+# Players cannot set render distance above this value
+# Recommended: 32 for most servers, higher values may impact performance
+max-render-distance: 32
+
+# Enable automatic sync between client and server
+# When enabled, client render distance changes are synced to server
+# Useful for maintaining consistency in speedrunning environments
+enable-auto-sync: true
+
+# Enable F3+F key combination
+# When disabled, the plugin will not respond to F3+F packets
+enable-f3f-keys: true
+
+# Cooldown between F3+F usages (milliseconds)
+# Prevents spam clicking, recommended: 100-500ms
+f3f-cooldown: 100
+
+# Server update cooldown (milliseconds)
+# Delay between server render distance updates to prevent conflicts
+# Recommended: 1000ms for stability
+server-update-cooldown: 1000
+
+# Configurable messages
+# Use %d for numbers, %s for strings
+# Color codes: &0-&9, &a-&f, &l (bold), &o (italic), &n (underline), &m (strikethrough), &r (reset)
+messages:
+  permission_denied: "&l&e[Debug]: &rUnable to change render distance; no permission"
+  render_distance: "&l&e[Debug]: &rRender Distance: %d"
+  server_render_distance: "&l&e[Debug]: &rServer Render Distance: %d"
+  client_render_distance: "&l&e[Debug]: &rClient Render Distance: %d"
+  render_distance_changed: "&aRender distance changed to %d"
+  render_distance_changed_by: "&6%s changed render distance to %d"
+  render_distance_at_maximum: "&eRender distance already at maximum (%d)"
+  render_distance_at_minimum: "&eRender distance already at minimum (%d)"
+
+# Log messages (for console output)
+# These don't support color codes but support placeholders
+log_messages:
+  initializing: "Initializing F3F plugin"
+  initialization_complete: "F3F plugin initialization complete"
+  server_started: "Server started, initializing LuckPerms integration..."
+  luckperms_not_detected: "LuckPerms not detected - using Bukkit permissions"
+  luckperms_enabled: "LuckPerms integration enabled"
+  luckperms_not_initialized: "LuckPerms present but API not initialized - using Bukkit permissions"
+  luckperms_error: "Error initializing LuckPerms: %s"
+  permission_error: "Error checking permissions for player %s: %s"
+  player_denied: "Player %s attempted change – denied (no permission)"
+  render_distance_changed: "Player %s changed render distance from %d to %d (F3+F)"
+  render_distance_max: "Player %s attempted to increase render distance but already at maximum (%d)"
+  render_distance_min: "Player %s attempted to decrease render distance but already at minimum (%d)"
+  auto_sync: "Auto-synced render distance for player %s from %d to %d (options change)"
+  config_loaded: "Configuration loaded successfully"
+  config_created: "Created default configuration"
+  config_load_error: "Failed to load configuration, using defaults: %s"
+  config_save_error: "Failed to save configuration: %s"
+  render_distance_changed_all: "Player %s changed render distance from %d to %d"
+  player_joined: "Player %s joined"
+  auto_sync_disabled: "Auto-sync disabled"
+  no_permission_for_sync: "Player %s doesn't have permission for sync"
+  requesting_sync: "Requesting render distance sync from %s"
+  f3f_keys_disabled: "F3+F keys are disabled in config, ignoring request from %s"
+  invalid_packet_data: "Invalid %s packet data from %s"
+  cooldown_active: "F3+F cooldown active for %s"
+  f3f_command_received: "F3+F command: %s from %s"
+  client_sync_request: "Client sync request: %d from %s"
+  sync_matches_current: "Client sync request matches current server distance (%d)"
+  server_adopted_distance: "Server adopted render distance %d from client %s (was %d)"
