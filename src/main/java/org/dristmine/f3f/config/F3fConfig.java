@@ -21,7 +21,7 @@ public class F3fConfig {
     public int maxRenderDistance = 32;
     public boolean enableAutoSync = true;
     public boolean enableF3FKeys = true;
-    public int f3fCooldown = 1000;
+    public int f3fCooldown = 100;
     public int serverUpdateCooldown = 1000;
 
     public static F3fConfig getInstance() {

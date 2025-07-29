@@ -21,15 +21,15 @@ public class KeyboardHandlerMixin {
         // Handle F key when F3 is held - prevent all F key actions
         if (key == GLFW.GLFW_KEY_F && (action == GLFW.GLFW_PRESS || action == GLFW.GLFW_RELEASE)) {
             if (GLFW.glfwGetKey(window, GLFW.GLFW_KEY_F3) == GLFW.GLFW_PRESS) {
-                ci.cancel(); // This prevents the F key from doing anything when F3 is held
+                ci.cancel();
                 return;
             }
         }
 
-        // Handle F3 key release - prevent debug screen if F3+F was used
+        // Handle F3 key release - prevent debug screen
         if (key == GLFW.GLFW_KEY_F3 && action == GLFW.GLFW_RELEASE) {
             if (F3fClient.wasF3FCombinationUsed()) {
-                ci.cancel(); // Cancel the F3 release to prevent debug screen
+                ci.cancel();
                 F3fClient.resetF3FCombinationFlag();
             }
         }

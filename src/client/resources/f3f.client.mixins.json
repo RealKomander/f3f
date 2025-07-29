@@ -6,7 +6,8 @@
   "client": [
     "KeyboardHandlerMixin",
     "KeyBindingMixin",
-    "MinecraftClientMixin"
+    "MinecraftClientMixin",
+    "DebugHudMixin"
   ],
   "injectors": {
     "defaultRequire": 1

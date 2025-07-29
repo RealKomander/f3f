@@ -27,12 +27,12 @@ public class KeyBindingMixin {
     }
 
     @Inject(method = "isPressed", at = @At("HEAD"), cancellable = true)
-    private void isPressed(CallbackInfoReturnable<Boolean> cir) {
+    private void isPressed(CallbackInfoReturnable<Boolean> ci) {
         // If this keybind uses the F key and F3 is currently held, cancel it
         if (boundKey.getCategory() == InputUtil.Type.KEYSYM &&
                 boundKey.getCode() == GLFW.GLFW_KEY_F &&
                 F3fClient.isF3CurrentlyHeld()) {
-            cir.setReturnValue(false);
+            ci.setReturnValue(false);
         }
     }
 }

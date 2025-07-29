@@ -20,14 +20,20 @@ public class F3fClient implements ClientModInitializer {
     private static boolean f3fCombinationUsed = false;
     private static long lastF3FUsage = 0;
 
+    // Simple timing for debug menu prevention
+    private static final long DEBUG_PREVENTION_WINDOW = 500; // Increased to 500ms
+    private static boolean debugPreventionActive = false;
+    private static long debugPreventionStart = 0;
+    private static boolean waitingForF3Release = false;
+
     // Detect if connected server has this mod installed
     private static boolean serverModPresent = false;
     private static long lastServerPacketTime = 0;
-    private static final long SERVER_PACKET_TIMEOUT = 5000; // milliseconds timeout to reset mod presence
+    private static final long SERVER_PACKET_TIMEOUT = 5000;
 
     // Suppress duplicate server messages on client
     private static long lastServerMessageTime = 0;
-    private static final long SERVER_MESSAGE_COOLDOWN = 3000; // ms cooldown to reduce message spam
+    private static final long SERVER_MESSAGE_COOLDOWN = 3000;
     private static boolean suppressNextServerMessage = false;
 
     // Tracking render distance syncing
@@ -35,30 +41,26 @@ public class F3fClient implements ClientModInitializer {
     private static boolean serverUpdateReceived = false;
     private static long lastServerUpdate = 0;
 
+    // Fix for singleplayer message priority
+    private static boolean localChangeInProgress = false;
+
     @Override
     public void onInitializeClient() {
         F3fConfig.load();
-
         registerPacketHandlers();
-
-        // Reset server mod presence and related flags on disconnect from any server
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> resetServerModState());
-
-        // Register client tick for key handling and auto-sync
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
     }
 
     private void registerPacketHandlers() {
         //? if >=1.20.5 {
-        // Modern packet handling (1.20.5+)
         ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (payload, context) -> {
             context.client().execute(() -> {
                 handleRenderDistanceUpdate(payload.renderDistance(), context.client());
             });
         });
         //?} else {
-        /*// Legacy packet handling (1.20.1)
-        ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (client, handler, buf, responseSender) -> {
+        /*ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (client, handler, buf, responseSender) -> {
             RenderDistanceUpdateS2CPacket packet = RenderDistanceUpdateS2CPacket.read(buf);
             client.execute(() -> {
                 handleRenderDistanceUpdate(packet.renderDistance(), client);
@@ -74,20 +76,15 @@ public class F3fClient implements ClientModInitializer {
         lastServerPacketTime = System.currentTimeMillis();
 
         if (newRenderDistance == -1) {
-            // Server requests current client render distance (auto-sync on join)
             if (F3fConfig.getInstance().isAutoSyncEnabled()) {
                 int currentRenderDistance = client.options.getViewDistance().getValue();
                 sendRenderDistanceSync(currentRenderDistance);
             }
         } else {
-            // Update client render distance value
             client.options.getViewDistance().setValue(newRenderDistance);
-
-            // Update tracking vars to avoid reacting to server-induced changes
             lastClientRenderDistance = newRenderDistance;
             serverUpdateReceived = true;
             lastServerUpdate = System.currentTimeMillis();
-
             client.options.write();
 
             if (client.worldRenderer != null) {
@@ -95,19 +92,20 @@ public class F3fClient implements ClientModInitializer {
             }
 
             if (client.player != null) {
-                if (F3fClient.wasF3FCombinationUsed()) {
-                    // Server already sent message for manual change, suppress duplicate
+                // Fix for singleplayer: Don't show server message if local change is in progress
+                if (localChangeInProgress) {
+                    localChangeInProgress = false; // Reset flag
+                    F3fClient.resetF3FCombinationFlag();
+                } else if (F3fClient.wasF3FCombinationUsed()) {
                     F3fClient.resetF3FCombinationFlag();
                 } else {
                     long now = System.currentTimeMillis();
-                    if (suppressNextServerMessage) {
-                        suppressNextServerMessage = false;
-                    } else if (now - lastServerMessageTime > SERVER_MESSAGE_COOLDOWN) {
+                    if (!suppressNextServerMessage && (now - lastServerMessageTime > SERVER_MESSAGE_COOLDOWN)) {
                         Text message = TextUtils.createServerRenderDistanceMessage(newRenderDistance);
                         client.player.sendMessage(message, false);
                         lastServerMessageTime = now;
-                        suppressNextServerMessage = true;
                     }
+                    suppressNextServerMessage = false;
                 }
             }
         }
@@ -122,6 +120,9 @@ public class F3fClient implements ClientModInitializer {
         lastServerUpdate = 0;
         lastClientRenderDistance = -1;
         f3fCombinationUsed = false;
+        localChangeInProgress = false;
+        debugPreventionActive = false;
+        waitingForF3Release = false;
     }
 
     private void onClientTick(MinecraftClient client) {
@@ -147,9 +148,11 @@ public class F3fClient implements ClientModInitializer {
 
         f3Pressed = currentF3State;
 
+        // Detect F3+F combination press
         if (currentF3State && currentFState && !lastFState) {
             f3fCombinationUsed = true;
             lastF3FUsage = System.currentTimeMillis();
+            localChangeInProgress = true;
 
             boolean hasServerMod = serverModPresent
                     || (System.currentTimeMillis() - lastServerPacketTime) < SERVER_PACKET_TIMEOUT;
@@ -169,8 +172,24 @@ public class F3fClient implements ClientModInitializer {
             }
         }
 
-        if (f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) > config.getF3FCooldown()) {
-            f3fCombinationUsed = false;
+        // Detect F3 release ONLY after F3+F was used
+        if (f3fCombinationUsed && lastF3State && !currentF3State) {
+            debugPreventionActive = true;
+            debugPreventionStart = System.currentTimeMillis();
+        }
+
+        // Clean up expired flags
+        long now = System.currentTimeMillis();
+        if (f3fCombinationUsed && (now - lastF3FUsage) > config.getF3FCooldown()) {
+            // Only reset if we're not preventing debug
+            if (!debugPreventionActive && !currentF3State) {
+                f3fCombinationUsed = false;
+            }
+        }
+
+        if (debugPreventionActive && (now - debugPreventionStart) > DEBUG_PREVENTION_WINDOW) {
+            debugPreventionActive = false;
+            f3fCombinationUsed = false; // Reset both flags when timer expires
         }
 
         lastF3State = currentF3State;
@@ -202,11 +221,10 @@ public class F3fClient implements ClientModInitializer {
             }
 
             lastClientRenderDistance = newValue;
-            serverUpdateReceived = false; // Mark local change
-
-            f3fCombinationUsed = true;
-            lastF3FUsage = System.currentTimeMillis();
+            serverUpdateReceived = false;
         }
+
+        localChangeInProgress = false; // Reset after local change
     }
 
     private void handleAutoSync(MinecraftClient client) {
@@ -255,17 +273,29 @@ public class F3fClient implements ClientModInitializer {
         //?}
     }
 
-    // Accessors for mixins or other classes
+    // Simplified accessors
     public static boolean isF3CurrentlyHeld() {
         return f3Pressed;
     }
 
     public static boolean wasF3FCombinationUsed() {
-        F3fConfig config = F3fConfig.getInstance();
-        return f3fCombinationUsed && (System.currentTimeMillis() - lastF3FUsage) < config.getF3FCooldown();
+        long now = System.currentTimeMillis();
+
+        // Priority 1: If F3+F was used and F3 is still held, always prevent debug
+        if (f3fCombinationUsed && f3Pressed) {
+            return true;
+        }
+
+        // Priority 2: If in debug prevention window after F3 release
+        if (debugPreventionActive) {
+            return true;
+        }
+
+        return false;
     }
 
+    // Simplified reset - only reset when appropriate
     public static void resetF3FCombinationFlag() {
-        f3fCombinationUsed = false;
+        // Let the timer handle flag management
     }
 }
