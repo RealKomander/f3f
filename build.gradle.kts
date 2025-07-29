@@ -36,7 +36,7 @@ dependencies {
     mappings("net.fabricmc:yarn:${property("deps.yarn")}:v2")
     modImplementation("net.fabricmc:fabric-loader:${property("deps.fabric_loader")}")
 
-    fapi("fabric-lifecycle-events-v1",)
+    fapi("fabric-lifecycle-events-v1","fabric-networking-api-v1")
 
     compileOnly("net.luckperms:api:${property("deps.luckperms")}")
 }
