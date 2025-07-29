@@ -78,12 +78,16 @@ tasks {
         inputs.property("name", project.property("mod.name"))
         inputs.property("version", project.property("mod.version"))
         inputs.property("minecraft", project.property("mod.mc_dep"))
+        inputs.property("minecraft_version", stonecutter.current.version)  // Add this line
+        inputs.property("loader_version", project.property("deps.fabric_loader"))
 
         val props = mapOf(
             "id" to project.property("mod.id"),
-            "name" to project.property("mod.id"),
-            "version" to project.property("mod.id"),
-            "minecraft" to project.property("mod.mc_dep")
+            "name" to project.property("mod.name"),
+            "version" to project.property("mod.version"),
+            "minecraft" to project.property("mod.mc_dep"),
+            "minecraft_version" to stonecutter.current.version,  // Add this line
+            "loader_version" to project.property("deps.fabric_loader")
         )
 
         filesMatching("fabric.mod.json") { expand(props) }

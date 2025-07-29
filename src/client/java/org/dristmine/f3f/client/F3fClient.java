@@ -39,63 +39,78 @@ public class F3fClient implements ClientModInitializer {
     public void onInitializeClient() {
         F3fConfig.load();
 
-        // Register packet handler for render distance updates from the server
-        ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (payload, context) -> {
-            context.client().execute(() -> {
-                MinecraftClient client = context.client();
-                if (client.options == null) return;
-
-                serverModPresent = true;
-                lastServerPacketTime = System.currentTimeMillis();
-
-                int newRenderDistance = payload.renderDistance();
-
-                if (newRenderDistance == -1) {
-                    // Server requests current client render distance (auto-sync on join)
-                    if (F3fConfig.getInstance().isAutoSyncEnabled()) {
-                        int currentRenderDistance = client.options.getViewDistance().getValue();
-                        ClientPlayNetworking.send(new RenderDistanceSyncC2SPacket(currentRenderDistance));
-                    }
-                } else {
-                    // Update client render distance value
-                    client.options.getViewDistance().setValue(newRenderDistance);
-
-                    // Update tracking vars to avoid reacting to server-induced changes
-                    lastClientRenderDistance = newRenderDistance;
-                    serverUpdateReceived = true;
-                    lastServerUpdate = System.currentTimeMillis();
-
-                    client.options.write();
-
-                    if (client.worldRenderer != null) {
-                        client.worldRenderer.reload();
-                    }
-
-                    if (client.player != null) {
-                        if (F3fClient.wasF3FCombinationUsed()) {
-                            // Server already sent message for manual change, suppress duplicate
-                            F3fClient.resetF3FCombinationFlag();
-                        } else {
-                            long now = System.currentTimeMillis();
-                            if (suppressNextServerMessage) {
-                                suppressNextServerMessage = false;
-                            } else if (now - lastServerMessageTime > SERVER_MESSAGE_COOLDOWN) {
-                                Text message = TextUtils.createServerRenderDistanceMessage(newRenderDistance);
-                                client.player.sendMessage(message, false);
-                                lastServerMessageTime = now;
-                                suppressNextServerMessage = true;
-                            }
-                        }
-                    }
-                }
-            });
-        });
+        registerPacketHandlers();
 
         // Reset server mod presence and related flags on disconnect from any server
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> resetServerModState());
 
         // Register client tick for key handling and auto-sync
         ClientTickEvents.END_CLIENT_TICK.register(this::onClientTick);
+    }
+
+    private void registerPacketHandlers() {
+        //? if >=1.20.5 {
+        // Modern packet handling (1.20.5+)
+        ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (payload, context) -> {
+            context.client().execute(() -> {
+                handleRenderDistanceUpdate(payload.renderDistance(), context.client());
+            });
+        });
+        //?} else {
+        /*// Legacy packet handling (1.20.1)
+        ClientPlayNetworking.registerGlobalReceiver(RenderDistanceUpdateS2CPacket.ID, (client, handler, buf, responseSender) -> {
+            RenderDistanceUpdateS2CPacket packet = RenderDistanceUpdateS2CPacket.read(buf);
+            client.execute(() -> {
+                handleRenderDistanceUpdate(packet.renderDistance(), client);
+            });
+        });*/
+        //?}
+    }
+
+    private void handleRenderDistanceUpdate(int newRenderDistance, MinecraftClient client) {
+        if (client.options == null) return;
+
+        serverModPresent = true;
+        lastServerPacketTime = System.currentTimeMillis();
+
+        if (newRenderDistance == -1) {
+            // Server requests current client render distance (auto-sync on join)
+            if (F3fConfig.getInstance().isAutoSyncEnabled()) {
+                int currentRenderDistance = client.options.getViewDistance().getValue();
+                sendRenderDistanceSync(currentRenderDistance);
+            }
+        } else {
+            // Update client render distance value
+            client.options.getViewDistance().setValue(newRenderDistance);
+
+            // Update tracking vars to avoid reacting to server-induced changes
+            lastClientRenderDistance = newRenderDistance;
+            serverUpdateReceived = true;
+            lastServerUpdate = System.currentTimeMillis();
+
+            client.options.write();
+
+            if (client.worldRenderer != null) {
+                client.worldRenderer.reload();
+            }
+
+            if (client.player != null) {
+                if (F3fClient.wasF3FCombinationUsed()) {
+                    // Server already sent message for manual change, suppress duplicate
+                    F3fClient.resetF3FCombinationFlag();
+                } else {
+                    long now = System.currentTimeMillis();
+                    if (suppressNextServerMessage) {
+                        suppressNextServerMessage = false;
+                    } else if (now - lastServerMessageTime > SERVER_MESSAGE_COOLDOWN) {
+                        Text message = TextUtils.createServerRenderDistanceMessage(newRenderDistance);
+                        client.player.sendMessage(message, false);
+                        lastServerMessageTime = now;
+                        suppressNextServerMessage = true;
+                    }
+                }
+            }
+        }
     }
 
     private void resetServerModState() {
@@ -141,13 +156,13 @@ public class F3fClient implements ClientModInitializer {
 
             if (currentShiftState) {
                 if (hasServerMod) {
-                    ClientPlayNetworking.send(new RenderDistanceChangeC2SPacket(false));
+                    sendRenderDistanceChange(false);
                 } else {
                     changeClientRenderDistance(false, client);
                 }
             } else {
                 if (hasServerMod) {
-                    ClientPlayNetworking.send(new RenderDistanceChangeC2SPacket(true));
+                    sendRenderDistanceChange(true);
                 } else {
                     changeClientRenderDistance(true, client);
                 }
@@ -215,9 +230,29 @@ public class F3fClient implements ClientModInitializer {
         }
 
         if (currentClientRenderDistance != lastClientRenderDistance && !serverUpdateReceived) {
-            ClientPlayNetworking.send(new RenderDistanceSyncC2SPacket(currentClientRenderDistance));
+            sendRenderDistanceSync(currentClientRenderDistance);
             lastClientRenderDistance = currentClientRenderDistance;
         }
+    }
+
+    private void sendRenderDistanceChange(boolean increase) {
+        //? if >=1.20.5 {
+        ClientPlayNetworking.send(new RenderDistanceChangeC2SPacket(increase));
+        //?} else {
+        /*net.minecraft.network.PacketByteBuf buf = net.fabricmc.fabric.api.networking.v1.PacketByteBufs.create();
+        new RenderDistanceChangeC2SPacket(increase).write(buf);
+        ClientPlayNetworking.send(RenderDistanceChangeC2SPacket.ID, buf);*/
+        //?}
+    }
+
+    private void sendRenderDistanceSync(int renderDistance) {
+        //? if >=1.20.5 {
+        ClientPlayNetworking.send(new RenderDistanceSyncC2SPacket(renderDistance));
+        //?} else {
+        /*net.minecraft.network.PacketByteBuf buf = net.fabricmc.fabric.api.networking.v1.PacketByteBufs.create();
+        new RenderDistanceSyncC2SPacket(renderDistance).write(buf);
+        ClientPlayNetworking.send(RenderDistanceSyncC2SPacket.ID, buf);*/
+        //?}
     }
 
     // Accessors for mixins or other classes

@@ -1,9 +1,11 @@
 package org.dristmine.f3f.packet;
 
 import net.minecraft.network.PacketByteBuf;
+import net.minecraft.util.Identifier;
+
+//? if >=1.20.5 {
 import net.minecraft.network.codec.PacketCodec;
 import net.minecraft.network.packet.CustomPayload;
-import net.minecraft.util.Identifier;
 
 public record RenderDistanceChangeC2SPacket(boolean increase) implements CustomPayload {
     public static final Id<RenderDistanceChangeC2SPacket> ID = new Id<>(Identifier.of("f3f", "render_distance_change"));
@@ -26,3 +28,20 @@ public record RenderDistanceChangeC2SPacket(boolean increase) implements CustomP
         return ID;
     }
 }
+//?} else {
+/*public record RenderDistanceChangeC2SPacket(boolean increase) {
+    public static final Identifier ID = new Identifier("f3f", "render_distance_change");
+
+    public RenderDistanceChangeC2SPacket(PacketByteBuf buf) {
+        this(buf.readBoolean());
+    }
+
+    public void write(PacketByteBuf buf) {
+        buf.writeBoolean(increase);
+    }
+
+    public static RenderDistanceChangeC2SPacket read(PacketByteBuf buf) {
+        return new RenderDistanceChangeC2SPacket(buf);
+    }
+}*/
+//?}
